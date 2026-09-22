@@ -27,6 +27,11 @@ const MODELS = [
    3.6-flash 는 느린 날 10초 가까이 걸려서, 그 정도는 기다려 준다. */
 const CALL_TIMEOUT_MS = 18_000;
 
+/* 모델을 몇 바퀴까지 다시 돌지, 그리고 전체로 몇 초까지 쓸지.
+   Vercel 함수 제한(60초)보다 넉넉히 안쪽이어야 잘리지 않고 에러 화면이라도 뜬다. */
+const MAX_PASSES = 3;
+const SWEEP_BUDGET_MS = 42_000;
+
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
@@ -402,18 +407,27 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
   const prompt = buildPrompt(input);
   const drinking = wantsAlcohol(input);
 
+  /* 무료 등급은 시간대에 따라 세 모델이 동시에 붐빌 때가 있다.
+     그때 503 은 몇 초 만에 되돌아오므로, 한 바퀴 돌고 포기하지 말고
+     제한 시간 안에서 몇 바퀴 더 돌아본다. 대개 다음 바퀴에서 붙는다. */
+  const started = Date.now();
+  const left = () => SWEEP_BUDGET_MS - (Date.now() - started);
+
   let res: Response | null = null;
-  for (const model of MODELS) {
-    res = await callGemini(apiKey, prompt, true, drinking, lang, model);
-    // 모델이 스키마를 거부하면(400) 스키마 없이 한 번 더.
-    if (res.status === 400) {
-      res = await callGemini(apiKey, prompt, false, drinking, lang, model);
+  sweep: for (let pass = 0; pass < MAX_PASSES; pass++) {
+    if (pass > 0) await new Promise((r) => setTimeout(r, 900));
+    for (const model of MODELS) {
+      if (left() <= 0) break sweep;
+      res = await callGemini(apiKey, prompt, true, drinking, lang, model);
+      // 모델이 스키마를 거부하면(400) 스키마 없이 한 번 더.
+      if (res.status === 400) {
+        res = await callGemini(apiKey, prompt, false, drinking, lang, model);
+      }
+      // 503 = 붐빔/무응답, 429 = 그 모델의 무료 할당량 소진.
+      // 둘 다 "이 모델은 지금 못 쓴다"는 뜻이라 기다리지 말고 다음 모델로.
+      if (res.status !== 503 && res.status !== 429) break sweep;
+      console.warn(`[gemini] ${res.status} (pass ${pass + 1}), 다음 모델로:`, model);
     }
-    // 503 = 붐빔/무응답, 429 = 그 모델의 무료 할당량 소진.
-    // 둘 다 "이 모델은 지금 못 쓴다"는 뜻이라 기다리지 말고 다음 모델로 넘긴다.
-    // 3.6-flash 는 품질이 좋은 대신 할당량이 빡빡해서, 이 폴백이 없으면 시연 중에 멈춘다.
-    if (res.status !== 503 && res.status !== 429) break;
-    console.warn(`[gemini] ${res.status}, 다음 모델로:`, model);
   }
 
   if (!res || !res.ok) {
