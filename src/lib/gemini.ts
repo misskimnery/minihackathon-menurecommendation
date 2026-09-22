@@ -28,9 +28,10 @@ const MODELS = [
 const CALL_TIMEOUT_MS = 18_000;
 
 /* 모델을 몇 바퀴까지 다시 돌지, 그리고 전체로 몇 초까지 쓸지.
-   Vercel 함수 제한(60초)보다 넉넉히 안쪽이어야 잘리지 않고 에러 화면이라도 뜬다. */
+   많이 붐비는 시간대에는 아무리 돌려도 안 붙는다. 그때 60초를 다 쓰고 실패하면
+   기다린 사람만 손해라, 예산을 짧게 잡아 실패도 빨리 알려주는 쪽이 낫다. */
 const MAX_PASSES = 3;
-const SWEEP_BUDGET_MS = 42_000;
+const SWEEP_BUDGET_MS = 26_000;
 
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
