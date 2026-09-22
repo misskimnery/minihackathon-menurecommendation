@@ -30,12 +30,12 @@ const CALL_TIMEOUT_MS = 12_000;
 /* 첫 모델이 이 시간 안에 답을 안 주면, 기다리지 말고 다음 모델도 같이 띄운다.
    먼저 도착한 답을 쓴다. 한 모델이 느린 날 30초씩 기다리던 게 이걸로 사라진다.
    1.5초는 건강한 날 3.6-flash 가 혼자 끝낼 여유는 주면서, 느린 날엔 금방 넘어가는 선. */
-const HEDGE_MS = 1_500;
+const HEDGE_MS = 700;
 
-/* 그래도 전부 실패하면 한 바퀴 더. 많이 붐비는 시간대에는 아무리 돌려도 안 붙으니,
-   예산을 짧게 잡아 실패도 빨리 알려주는 쪽이 낫다. */
+/* 전부 '빨리' 실패했을 때만 한 바퀴 더 돈다.
+   이미 오래 기다린 뒤라면 다시 돌아봐야 사용자만 더 기다리니, 그냥 실패를 알려준다. */
 const MAX_PASSES = 2;
-const SWEEP_BUDGET_MS = 22_000;
+const SWEEP_BUDGET_MS = 8_000;
 
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
