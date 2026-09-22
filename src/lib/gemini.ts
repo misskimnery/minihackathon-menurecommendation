@@ -25,17 +25,17 @@ const MODELS = [
 
 /* 한 모델이 60초씩 붙잡고 안 놓는 경우가 있다. 그러면 배포 환경에서 함수가 통째로 죽는다.
    아래 hedge 로 다른 모델을 겹쳐 띄우니, 한 모델을 오래 기다릴 이유가 없다. */
-const CALL_TIMEOUT_MS = 12_000;
+const CALL_TIMEOUT_MS = 9_000;
 
 /* 첫 모델이 이 시간 안에 답을 안 주면, 기다리지 말고 다음 모델도 같이 띄운다.
    먼저 도착한 답을 쓴다. 한 모델이 느린 날 30초씩 기다리던 게 이걸로 사라진다.
-   1.5초는 건강한 날 3.6-flash 가 혼자 끝낼 여유는 주면서, 느린 날엔 금방 넘어가는 선. */
-const HEDGE_MS = 700;
+   너무 짧게 잡으면 세 모델을 한꺼번에 불러 무료 할당량만 빨리 태운다. 1.2초가 그 사이. */
+const HEDGE_MS = 1_200;
 
-/* 전부 '빨리' 실패했을 때만 한 바퀴 더 돈다.
-   이미 오래 기다린 뒤라면 다시 돌아봐야 사용자만 더 기다리니, 그냥 실패를 알려준다. */
-const MAX_PASSES = 2;
-const SWEEP_BUDGET_MS = 8_000;
+/* 붐비는 시간대에는 한 바퀴로 안 붙는 일이 잦아 여러 바퀴 돌아본다.
+   다만 이미 오래 기다렸으면 새 바퀴를 시작하지 않는다. 최악이 23초 안쪽으로 묶인다. */
+const MAX_PASSES = 3;
+const SWEEP_BUDGET_MS = 13_000;
 
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
