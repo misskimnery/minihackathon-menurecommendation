@@ -11,7 +11,8 @@ import {
 } from "@/lib/menu";
 
 // Vercel 기본 제한(10초)으로는 모델이 느린 날 잘린다.
-export const maxDuration = 30;
+// 모델 3개를 각 10초 타임아웃으로 넘겨보므로 최악 30초 + 여유.
+export const maxDuration = 45;
 
 function pick(list: Choice[], value: unknown): string {
   return typeof value === "string" && list.some((c) => c.value === value) ? value : "";
