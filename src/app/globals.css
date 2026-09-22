@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fdf8f3;
+  --surface: #ffffff;
+  --foreground: #241a14;
+  --muted: #7b6a5e;
+  --line: #eadfd3;
+  --brand: #e2542c;
+  --brand-soft: #fdeee7;
+  --brand-ink: #ffffff;
+  --danger: #b3261e;
+  --danger-soft: #fbeae8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #17110d;
+    --surface: #221913;
+    --foreground: #f4e9e0;
+    --muted: #b2a095;
+    --line: #37281f;
+    --brand: #ff7a4d;
+    --brand-soft: #35211a;
+    --brand-ink: #1a0f09;
+    --danger: #ff9a8f;
+    --danger-soft: #35201d;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.rise { animation: rise 0.32s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation: none; }
+}
