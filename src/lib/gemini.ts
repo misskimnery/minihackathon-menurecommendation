@@ -15,13 +15,14 @@ import {
 /* 첫 모델이 붐비면(503) 다음 모델로 넘어간다. 발표 중에 한 번에 되는 게 제일 중요하다.
    순서는 2026-09-22 실측 기준: lite 계열이 2~3초, 큰 flash 는 10초 이상이거나 503. */
 const MODELS = [
-  process.env.GEMINI_MODEL || "gemini-3.1-flash-lite",
-  "gemini-3.6-flash",
+  process.env.GEMINI_MODEL || "gemini-3.6-flash",
+  "gemini-3.1-flash-lite",
   "gemini-3.5-flash-lite",
 ].filter((m, i, all) => m && all.indexOf(m) === i);
 
-/* 한 모델이 60초씩 붙잡고 안 놓는 경우가 있다. 그러면 배포 환경에서 함수가 통째로 죽는다. */
-const CALL_TIMEOUT_MS = 10_000;
+/* 한 모델이 60초씩 붙잡고 안 놓는 경우가 있다. 그러면 배포 환경에서 함수가 통째로 죽는다.
+   3.6-flash 는 느린 날 10초 가까이 걸려서, 그 정도는 기다려 준다. */
+const CALL_TIMEOUT_MS = 18_000;
 
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
@@ -277,9 +278,11 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
     res = await callGemini(apiKey, prompt, true, drinking, model);
     // 모델이 스키마를 거부하면(400) 스키마 없이 한 번 더.
     if (res.status === 400) res = await callGemini(apiKey, prompt, false, drinking, model);
-    // 503 = 지금 붐비거나 응답이 없음. 기다리지 말고 바로 다음 모델로.
-    if (res.status !== 503) break;
-    console.warn("[gemini] 503, 다음 모델로:", model);
+    // 503 = 붐빔/무응답, 429 = 그 모델의 무료 할당량 소진.
+    // 둘 다 "이 모델은 지금 못 쓴다"는 뜻이라 기다리지 말고 다음 모델로 넘긴다.
+    // 3.6-flash 는 품질이 좋은 대신 할당량이 빡빡해서, 이 폴백이 없으면 시연 중에 멈춘다.
+    if (res.status !== 503 && res.status !== 429) break;
+    console.warn(`[gemini] ${res.status}, 다음 모델로:`, model);
   }
 
   if (!res || !res.ok) {

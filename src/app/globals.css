@@ -1,62 +1,57 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════
-   오늘 뭐 먹지? — Human Touch 디자인 시스템
-   따뜻한 아이보리 종이 위에, 음식에서 가져온 색을 조금씩.
+   오늘 뭐 먹지? — Human Touch (Anti-AI Aesthetic)
+   찢어낸 종이를 겹쳐 붙인 콜라주. 흙빛 색지 위에 손으로 그린 선.
    ═══════════════════════════════════════════════════════════ */
 
 :root {
   /* 종이 */
-  --cream: #FAF4E8;
-  --paper: #FFFCF5;
-  --sesame: #EDE2CC;
+  --cream: #F1E7D6;
+  --paper: #FBF5EA;
+  --sand: #E3D4BC;
 
-  /* 잉크 */
-  --ink: #2E2219;
-  --ink-2: #6E5B4B;
-  --ink-3: #A2907E;
+  /* 잉크 — 목탄에 가까운 검정 */
+  --ink: #241E18;
+  --ink-2: #5E5044;
+  --ink-3: #9A8871;
 
-  /* 음식에서 가져온 액센트 */
-  --tomato: #DB5138;
-  --basil: #5C8B4C;
-  --yolk: #E5AE2E;
-  --chili: #E0762C;
-  --lavender: #8A7AA6;
-  --blueberry: #4A6DA0;
-  --soy: #4A3325;
+  /* 색지 — 레퍼런스의 테라코타 / 클레이 / 세이지 */
+  --terracotta: #C0563A;
+  --clay: #8E5A3F;
+  --sage: #7E9068;
+  --ochre: #D9A441;
+  --rust: #CF7439;
+  --plum: #8A7E96;
+  --slate: #5A6E8C;
 
-  /* 유리 */
-  --glass: rgba(255, 252, 245, 0.66);
-  --glass-strong: rgba(255, 252, 245, 0.86);
-  --hairline: rgba(74, 51, 37, 0.14);
-  --hairline-soft: rgba(74, 51, 37, 0.08);
+  /* 유리 — 종이 위에 놓인 얇은 접시 */
+  --glass: rgba(251, 245, 234, 0.72);
+  --glass-strong: rgba(251, 245, 234, 0.9);
+  --hairline: rgba(36, 30, 24, 0.16);
+  --hairline-soft: rgba(36, 30, 24, 0.09);
 
-  /* 그림자 — 갈색기가 도는 따뜻한 그림자 */
-  --lift-1: 0 1px 2px rgba(74, 51, 37, 0.06), 0 2px 8px rgba(74, 51, 37, 0.05);
-  --lift-2: 0 2px 4px rgba(74, 51, 37, 0.07), 0 8px 20px rgba(74, 51, 37, 0.09);
-  --lift-3: 0 4px 10px rgba(74, 51, 37, 0.1), 0 18px 40px rgba(74, 51, 37, 0.12);
-  --inner-top: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --lift-1: 0 1px 2px rgba(36, 30, 24, 0.06), 0 2px 8px rgba(36, 30, 24, 0.05);
+  --lift-2: 0 2px 4px rgba(36, 30, 24, 0.07), 0 10px 24px rgba(36, 30, 24, 0.1);
+  --inner-top: inset 0 1px 0 rgba(255, 255, 255, 0.85);
 
-  /* 섹션마다 바뀌는 액센트 */
-  --accent: var(--tomato);
-  --accent-ink: #FFFFFF;
-  --accent-wash: rgba(219, 81, 56, 0.1);
+  --accent: var(--terracotta);
+  --accent-ink: #FBF5EA;
+  --accent-wash: rgba(192, 86, 58, 0.14);
 }
 
 @theme inline {
   --color-cream: var(--cream);
   --color-paper: var(--paper);
-  --color-sesame: var(--sesame);
+  --color-sand: var(--sand);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
-  --color-tomato: var(--tomato);
-  --color-basil: var(--basil);
-  --color-yolk: var(--yolk);
-  --color-chili: var(--chili);
-  --color-lavender: var(--lavender);
-  --color-blueberry: var(--blueberry);
-  --color-soy: var(--soy);
+  --color-terracotta: var(--terracotta);
+  --color-clay: var(--clay);
+  --color-sage: var(--sage);
+  --color-ochre: var(--ochre);
+  --color-rust: var(--rust);
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
   --font-hand: var(--font-hand);
@@ -64,54 +59,49 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --cream: #1C1712;
-    --paper: #251E17;
-    --sesame: #3A2F23;
-    --ink: #F3E9DA;
-    --ink-2: #C2B2A0;
-    --ink-3: #8D7C6C;
-    --tomato: #F07358;
-    --basil: #8FBF7A;
-    --yolk: #EFC45C;
-    --chili: #F0954E;
-    --lavender: #B4A4CE;
-    --blueberry: #7EA0D4;
-    --glass: rgba(50, 40, 31, 0.6);
-    --glass-strong: rgba(50, 40, 31, 0.85);
-    --hairline: rgba(243, 233, 218, 0.14);
-    --hairline-soft: rgba(243, 233, 218, 0.07);
+    --cream: #1A1510;
+    --paper: #241D16;
+    --sand: #3A2E22;
+    --ink: #F2E7D6;
+    --ink-2: #C0AF9A;
+    --ink-3: #8B7A66;
+    --terracotta: #E07551;
+    --clay: #C08260;
+    --sage: #A3B58B;
+    --ochre: #E6BA5C;
+    --rust: #E28F51;
+    --plum: #B0A3BE;
+    --slate: #8AA0BE;
+    --glass: rgba(45, 37, 28, 0.66);
+    --glass-strong: rgba(45, 37, 28, 0.88);
+    --hairline: rgba(242, 231, 214, 0.16);
+    --hairline-soft: rgba(242, 231, 214, 0.08);
     --inner-top: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    --accent-ink: #201810;
+    --accent-ink: #1A1510;
   }
 }
 
-/* ── 바탕: 크림색 종이 + 번진 액센트 + 결 ─────────────────── */
+/* ── 바탕: 색지를 깔고 그 위에 결을 얹는다 ─────────────────── */
 
 body {
   color: var(--ink);
   font-family: var(--font-body), "Apple SD Gothic Neo", sans-serif;
   background-color: var(--cream);
-  background-image:
-    radial-gradient(38rem 26rem at 8% -6%, rgba(229, 174, 46, 0.18), transparent 62%),
-    radial-gradient(34rem 24rem at 102% 6%, rgba(219, 81, 56, 0.14), transparent 60%),
-    radial-gradient(40rem 30rem at 50% 112%, rgba(92, 139, 76, 0.13), transparent 62%);
-  background-attachment: fixed;
 }
 
-/* 종이 결. 아주 옅게 깔아야 '질감'이지 '노이즈'가 아니다. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.4;
+  opacity: 0.55;
   mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
 }
 
 @media (prefers-color-scheme: dark) {
-  body::before { mix-blend-mode: screen; opacity: 0.16; }
+  body::before { mix-blend-mode: screen; opacity: 0.18; }
 }
 
 /* ── 타이포 ────────────────────────────────────────────────── */
@@ -128,76 +118,103 @@ body::before {
   font-weight: 400;
 }
 
-/* ── 섹션 슬래브: 반투명 종이 한 장 ────────────────────────── */
+/* ── 찢어낸 종이 ───────────────────────────────────────────── */
+
+/* 배경 레이어에만 왜곡 필터를 걸어야 글씨가 안 흔들린다. */
+.torn {
+  position: relative;
+  isolation: isolate;
+}
+.torn > * { position: relative; z-index: 1; }
+
+.torn::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: 0;
+  border-radius: 22px;
+  background: var(--glass-strong);
+  box-shadow: var(--lift-1), var(--inner-top);
+  filter: url(#deckle);
+}
+
+@supports not (filter: url(#deckle)) {
+  .torn::before { border-radius: 24px; }
+}
+
+/* ── 섹션 ──────────────────────────────────────────────────── */
 
 .sec {
-  position: relative;
-  border: 1px solid var(--hairline-soft);
-  border-radius: 26px;
-  background: var(--glass);
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
-  box-shadow: var(--lift-1), var(--inner-top);
-  padding: 1.35rem 1.25rem 1.5rem;
+  border: 0;
+  padding: 1.4rem 1.3rem 1.55rem;
+  margin: 0;
 }
 
 @media (min-width: 640px) {
-  .sec { padding: 1.6rem 1.6rem 1.75rem; border-radius: 30px; }
+  .sec { padding: 1.65rem 1.7rem 1.8rem; }
 }
 
-/* 손으로 붙인 라벨처럼, 번호표를 살짝 기울여 얹는다. */
+/* 손으로 찢어 붙인 라벨 */
 .sec__num {
   position: absolute;
-  top: -0.7rem;
-  left: 1.2rem;
+  top: -0.75rem;
+  left: 1.15rem;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  transform: rotate(-2.5deg);
-  padding: 0.22rem 0.62rem;
-  border-radius: 999px 999px 999px 4px;
+  transform: rotate(-3deg);
+  padding: 0.24rem 0.7rem;
+  border-radius: 3px;
   background: var(--accent);
   color: var(--accent-ink);
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-family: var(--font-hand), cursive;
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
   box-shadow: 0 3px 8px var(--accent-wash);
 }
 
 .sec__title {
   font-family: var(--font-display), serif;
   font-weight: 700;
-  font-size: 1.22rem;
+  font-size: 1.24rem;
   letter-spacing: -0.01em;
   display: flex;
   align-items: baseline;
-  gap: 0.6rem;
+  gap: 0.55rem;
   flex-wrap: wrap;
-  margin: 0.45rem 0 1rem;
+  margin: 0.5rem 0 1.05rem;
+}
+
+/* 제목 밑에 손으로 죽 그은 선 */
+.sec__title::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 100%;
+  height: 7px;
+  margin-top: 0.2rem;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 7' preserveAspectRatio='none'%3E%3Cpath d='M2 4.4C36 2.1 74 5.6 108 3.2c30-2.1 62 2.6 92 1.1' fill='none' stroke='%23241E18' stroke-width='2.2' stroke-linecap='round' opacity='0.2'/%3E%3C/svg%3E");
 }
 
 .sec__note {
   font-family: var(--font-hand), cursive;
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--accent);
   transform: rotate(-1.5deg);
   display: inline-block;
 }
 
-/* 섹션별 액센트 — 색으로 리듬을 만든다 */
-.sec--mood    { --accent: var(--lavender); --accent-wash: rgba(138, 122, 166, 0.14); }
-.sec--budget  { --accent: var(--basil);    --accent-wash: rgba(92, 139, 76, 0.14); }
-.sec--company { --accent: var(--tomato);   --accent-wash: rgba(219, 81, 56, 0.13); }
-.sec--weather { --accent: var(--blueberry);--accent-wash: rgba(74, 109, 160, 0.14); }
-.sec--prefer  { --accent: var(--yolk);     --accent-wash: rgba(229, 174, 46, 0.18); }
-.sec--avoid   { --accent: var(--chili);    --accent-wash: rgba(224, 118, 44, 0.14); }
-.sec--age     { --accent: var(--soy);      --accent-wash: rgba(74, 51, 37, 0.12); }
+/* 섹션마다 다른 색지 */
+.sec--mood    { --accent: var(--plum);       --accent-wash: rgba(138, 126, 150, 0.16); }
+.sec--budget  { --accent: var(--sage);       --accent-wash: rgba(126, 144, 104, 0.16); }
+.sec--company { --accent: var(--terracotta); --accent-wash: rgba(192, 86, 58, 0.15); }
+.sec--weather { --accent: var(--slate);      --accent-wash: rgba(90, 110, 140, 0.16); }
+.sec--prefer  { --accent: var(--ochre);      --accent-wash: rgba(217, 164, 65, 0.2); }
+.sec--avoid   { --accent: var(--rust);       --accent-wash: rgba(207, 116, 57, 0.16); }
+.sec--age     { --accent: var(--clay);       --accent-wash: rgba(142, 90, 63, 0.16); }
 
-@media (prefers-color-scheme: dark) {
-  .sec--age { --accent: var(--yolk); }
-}
-
-/* ── 칩: 메뉴판에 붙이는 작은 스티커 ───────────────────────── */
+/* ── 칩: 전부 같은 알약. 모양은 하나로 통일한다. ───────────── */
 
 .chips { display: flex; flex-wrap: wrap; gap: 0.55rem; }
 
@@ -206,10 +223,10 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 1.05rem;
   border-radius: 999px;
-  border: 1px solid var(--hairline);
-  background: var(--glass-strong);
+  border: 1.5px solid var(--hairline);
+  background: var(--paper);
   color: var(--ink);
   font-size: 0.93rem;
   font-weight: 500;
@@ -224,10 +241,6 @@ body::before {
     color 0.16s ease;
 }
 
-/* 전부 같은 알약이면 기계 같다. 몇 개만 모서리를 다르게 깎는다. */
-.chip:nth-child(3n)   { border-radius: 16px; }
-.chip:nth-child(5n+2) { border-radius: 999px 16px 999px 16px; }
-
 .chip__emoji { font-size: 1.02rem; line-height: 1; }
 
 .chip:hover {
@@ -239,35 +252,33 @@ body::before {
 
 .chip:active { transform: translateY(1px) scale(0.975); }
 
+/* 고르면 색지를 오려 붙인 것처럼. 기울기는 전부 같은 방향·같은 각도. */
 .chip[aria-pressed="true"] {
   background: var(--accent);
   border-color: transparent;
   color: var(--accent-ink);
-  transform: rotate(-1.4deg);
+  transform: rotate(-1.2deg);
   box-shadow:
     0 6px 16px var(--accent-wash),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .chip[aria-pressed="true"]:hover {
   color: var(--accent-ink);
-  transform: rotate(-1.4deg) translateY(-2px);
+  transform: rotate(-1.2deg) translateY(-2px);
 }
 
-.chip[aria-pressed="true"]:nth-child(even) { transform: rotate(1.3deg); }
-.chip[aria-pressed="true"]:nth-child(even):hover { transform: rotate(1.3deg) translateY(-2px); }
-
-/* 고른 칩 오른쪽 위에 찍히는 작은 점 — 스티커를 눌러 붙인 자국 */
+/* 눌러 붙인 자국 */
 .chip[aria-pressed="true"]::after {
   content: "";
   position: absolute;
   top: -3px;
-  right: 8px;
+  right: 10px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 2px var(--paper);
+  box-shadow: 0 0 0 2px var(--cream);
 }
 
 /* ── 기분 슬라이더 ─────────────────────────────────────────── */
@@ -277,17 +288,16 @@ body::before {
   align-items: center;
   gap: 0.85rem;
   padding: 0.85rem 1rem;
-  border-radius: 20px;
-  background: var(--glass-strong);
-  border: 1px solid var(--hairline-soft);
-  box-shadow: var(--inner-top);
-  margin-bottom: 0.85rem;
+  border-radius: 999px;
+  background: var(--sand);
+  box-shadow: inset 0 2px 4px rgba(36, 30, 24, 0.1);
+  margin-bottom: 0.9rem;
 }
 
 .mood__face {
   font-size: 2rem;
   line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(74, 51, 37, 0.18));
+  filter: drop-shadow(0 2px 4px rgba(36, 30, 24, 0.2));
 }
 
 .mood__label {
@@ -301,9 +311,9 @@ body::before {
   font-variant-numeric: tabular-nums;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--clay);
 }
-.mood__score span { font-size: 0.82rem; color: var(--ink-3); font-weight: 500; }
+.mood__score span { font-size: 0.8rem; color: var(--ink-3); font-weight: 500; }
 
 .mood__slider {
   -webkit-appearance: none;
@@ -318,17 +328,17 @@ body::before {
 .mood__slider::-webkit-slider-runnable-track {
   height: 14px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #6E86B8, #9C8DB6, #E5AE2E, #E0762C, #DB5138);
-  box-shadow: inset 0 2px 5px rgba(74, 51, 37, 0.28);
+  background: linear-gradient(90deg, #5A6E8C, #8A7E96, #D9A441, #CF7439, #C0563A);
+  box-shadow: inset 0 2px 5px rgba(36, 30, 24, 0.3);
 }
 .mood__slider::-moz-range-track {
   height: 14px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #6E86B8, #9C8DB6, #E5AE2E, #E0762C, #DB5138);
-  box-shadow: inset 0 2px 5px rgba(74, 51, 37, 0.28);
+  background: linear-gradient(90deg, #5A6E8C, #8A7E96, #D9A441, #CF7439, #C0563A);
+  box-shadow: inset 0 2px 5px rgba(36, 30, 24, 0.3);
 }
 
-/* 손잡이는 접시처럼 — 두툼하게, 그림자 확실하게 */
+/* 손잡이는 접시처럼 */
 .mood__slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -338,7 +348,7 @@ body::before {
   border-radius: 50%;
   background: var(--paper);
   border: 2.5px solid var(--ink);
-  box-shadow: 0 4px 10px rgba(74, 51, 37, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 10px rgba(36, 30, 24, 0.32), inset 0 2px 0 rgba(255, 255, 255, 0.8);
   transition: transform 0.14s ease;
 }
 .mood__slider::-moz-range-thumb {
@@ -347,18 +357,19 @@ body::before {
   border-radius: 50%;
   background: var(--paper);
   border: 2.5px solid var(--ink);
-  box-shadow: 0 4px 10px rgba(74, 51, 37, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 10px rgba(36, 30, 24, 0.32), inset 0 2px 0 rgba(255, 255, 255, 0.8);
 }
 .mood__slider:hover::-webkit-slider-thumb { transform: scale(1.08); }
 .mood__slider:active::-webkit-slider-thumb { transform: scale(0.95); }
 .mood__slider:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 4px var(--accent-wash), 0 4px 10px rgba(74, 51, 37, 0.3);
+  box-shadow: 0 0 0 4px var(--accent-wash), 0 4px 10px rgba(36, 30, 24, 0.3);
 }
 
 .mood__ticks {
   display: flex;
   justify-content: space-between;
-  font-size: 0.72rem;
+  font-family: var(--font-hand), cursive;
+  font-size: 0.95rem;
   color: var(--ink-3);
   padding: 0 2px;
   margin-top: -2px;
@@ -369,9 +380,9 @@ body::before {
 .field {
   width: 100%;
   padding: 0.85rem 1rem;
-  border-radius: 16px;
-  border: 1px solid var(--hairline);
-  background: var(--glass-strong);
+  border-radius: 999px;
+  border: 1.5px solid var(--hairline);
+  background: var(--paper);
   color: var(--ink);
   font-size: 0.97rem;
   box-shadow: var(--inner-top);
@@ -391,45 +402,44 @@ body::before {
   width: 100%;
   padding: 1.15rem 1.5rem;
   border: none;
-  border-radius: 22px;
+  border-radius: 999px;
   font-family: var(--font-display), serif;
-  font-size: 1.12rem;
+  font-size: 1.14rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: #FFFDF8;
-  background: linear-gradient(135deg, #E2603C 0%, #DB5138 46%, #C33F2C 100%);
+  color: #FBF5EA;
+  background: linear-gradient(135deg, #C96745 0%, #C0563A 48%, #A6432B 100%);
   cursor: pointer;
   overflow: hidden;
   box-shadow:
-    0 8px 22px rgba(219, 81, 56, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    0 8px 22px rgba(192, 86, 58, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.12);
   transition: transform 0.16s cubic-bezier(0.2, 0.9, 0.3, 1.2), box-shadow 0.16s ease;
 }
 
 .cta:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(219, 81, 56, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 28px rgba(192, 86, 58, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 .cta:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 4px 10px rgba(219, 81, 56, 0.3), inset 0 2px 5px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 4px 10px rgba(192, 86, 58, 0.3), inset 0 2px 5px rgba(0, 0, 0, 0.18);
 }
 .cta:disabled {
   cursor: not-allowed;
   color: var(--ink-3);
-  background: var(--sesame);
-  box-shadow: var(--inner-top), inset 0 0 0 1px var(--hairline-soft);
+  background: var(--sand);
+  box-shadow: var(--inner-top), inset 0 0 0 1.5px var(--hairline-soft);
 }
 
-/* 위로 피어오르는 김 — 버튼이 뜨겁다는 신호 */
 .steam {
   position: absolute;
   top: -14px;
   width: 2px;
   height: 16px;
   border-radius: 2px;
-  background: linear-gradient(to top, rgba(219, 81, 56, 0.45), transparent);
+  background: linear-gradient(to top, rgba(192, 86, 58, 0.5), transparent);
   animation: steam 2.6s ease-in-out infinite;
 }
 @keyframes steam {
@@ -440,19 +450,8 @@ body::before {
 
 /* ── 결과 카드 ─────────────────────────────────────────────── */
 
-.card {
-  position: relative;
-  border: 1px solid var(--hairline-soft);
-  border-radius: 26px;
-  background: var(--glass-strong);
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
-  box-shadow: var(--lift-2), var(--inner-top);
-  padding: 1.4rem 1.3rem;
-  overflow: hidden;
-}
+.card { padding: 1.45rem 1.35rem; }
 
-/* 접시 — 이모지 뒤에 깔리는 원 */
 .card__plate {
   position: relative;
   flex: 0 0 auto;
@@ -461,8 +460,8 @@ body::before {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: radial-gradient(circle at 34% 28%, #FFFFFF, var(--sesame));
-  box-shadow: 0 4px 12px rgba(74, 51, 37, 0.16), inset 0 0 0 4px rgba(255, 255, 255, 0.55);
+  background: radial-gradient(circle at 34% 28%, #FFFFFF, var(--sand));
+  box-shadow: 0 4px 12px rgba(36, 30, 24, 0.18), inset 0 0 0 4px rgba(255, 255, 255, 0.5);
   font-size: 1.85rem;
 }
 
@@ -473,51 +472,54 @@ body::before {
   letter-spacing: -0.01em;
 }
 
-/* 가격은 손으로 붙인 가격표처럼 기울여서 */
+/* 손으로 오려 붙인 가격표 */
 .price {
-  transform: rotate(2deg);
+  transform: rotate(2.5deg);
   flex: 0 0 auto;
-  padding: 0.34rem 0.75rem;
-  border-radius: 999px 4px 999px 4px;
-  background: var(--yolk);
-  color: #3A2B10;
-  font-size: 0.82rem;
-  font-weight: 700;
-  box-shadow: 0 3px 8px rgba(229, 174, 46, 0.4);
+  padding: 0.36rem 0.8rem;
+  border-radius: 3px;
+  background: var(--ochre);
+  color: #33240A;
+  font-family: var(--font-hand), cursive;
+  font-size: 1.05rem;
+  box-shadow: 0 3px 8px rgba(217, 164, 65, 0.42);
 }
 
 .pair {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.42rem 0.8rem;
+  padding: 0.42rem 0.85rem;
   border-radius: 999px;
-  border: 1px dashed var(--hairline);
-  background: var(--glass);
+  border: 1.5px dashed var(--hairline);
+  background: var(--paper);
   font-size: 0.85rem;
 }
 .pair dt { color: var(--ink-3); font-size: 0.76rem; }
 .pair dd { font-weight: 600; margin: 0; }
-.pair--booze { border-style: solid; border-color: var(--lavender); background: rgba(138, 122, 166, 0.12); }
+.pair--booze {
+  border-style: solid;
+  border-color: var(--plum);
+  background: rgba(138, 126, 150, 0.14);
+}
 
-/* 부스러기 — 카드 구석에 흩뿌린 점 */
-.crumbs { position: absolute; pointer-events: none; opacity: 0.5; }
+.crumbs { position: absolute; pointer-events: none; opacity: 0.45; z-index: 1; }
 
-/* ── 장식 ──────────────────────────────────────────────────── */
+/* ── 콜라주 색지 ───────────────────────────────────────────── */
+
+/* 흐릿한 얼룩이 아니라, 찢어낸 색종이처럼 또렷하게 얹는다. */
+.scrap {
+  position: absolute;
+  pointer-events: none;
+  filter: url(#deckle-lg);
+  opacity: 0.55;
+}
 
 .doodle {
   position: absolute;
   pointer-events: none;
-  color: var(--ink-3);
-  opacity: 0.4;
-}
-
-.blob {
-  position: absolute;
-  pointer-events: none;
-  border-radius: 46% 54% 38% 62% / 55% 42% 58% 45%;
-  filter: blur(34px);
-  opacity: 0.4;
+  color: var(--ink);
+  opacity: 0.3;
 }
 
 /* ── 움직임 ────────────────────────────────────────────────── */

@@ -9,16 +9,16 @@ export function Skeleton() {
         Gemini가 메뉴를 고르고 있어요…
       </p>
       {[0, 1, 2].map((i) => (
-        <div key={i} className="card" style={{ opacity: 0.75 }}>
+        <div key={i} className="torn card" style={{ opacity: 0.75 }}>
           <div className="flex items-center gap-4">
             <div
               className="card__plate"
               style={{ animation: "pulse-soft 1.4s ease-in-out infinite", animationDelay: `${i * 0.18}s` }}
             />
             <div className="flex-1">
-              <div className="h-5 w-2/5 rounded-full" style={{ background: "var(--sesame)" }} />
-              <div className="mt-3 h-3.5 w-full rounded-full" style={{ background: "var(--sesame)" }} />
-              <div className="mt-2 h-3.5 w-3/5 rounded-full" style={{ background: "var(--sesame)" }} />
+              <div className="h-5 w-2/5 rounded-full" style={{ background: "var(--sand)" }} />
+              <div className="mt-3 h-3.5 w-full rounded-full" style={{ background: "var(--sand)" }} />
+              <div className="mt-2 h-3.5 w-3/5 rounded-full" style={{ background: "var(--sand)" }} />
             </div>
           </div>
         </div>
@@ -64,7 +64,7 @@ export default function ResultCards({
       {result.menus.map((m, i) => (
         <article
           key={`${m.name}-${i}`}
-          className="rise card"
+          className="rise torn card"
           style={{ animationDelay: `${i * 90}ms` }}
         >
           <Crumbs className="-right-2 -top-1" />
@@ -113,7 +113,7 @@ export default function ResultCards({
         type="button"
         onClick={onRetry}
         className="chip justify-center"
-        style={{ padding: "1.05rem", fontSize: "1rem", borderRadius: "20px" }}
+        style={{ padding: "1.05rem", fontSize: "1rem" }}
       >
         <span className="chip__emoji" aria-hidden="true">
           ↺

@@ -57,7 +57,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <fieldset className={`sec sec--${tone}`}>
+    <fieldset className={`torn sec sec--${tone}`}>
       <span className="sec__num" aria-hidden="true">
         {num}
       </span>
