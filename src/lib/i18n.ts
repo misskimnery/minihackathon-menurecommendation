@@ -104,8 +104,7 @@ const en: Copy = {
   langName: "English",
   kicker: "Today's meal",
   title: "What should I eat?",
-  subtitle:
-    "Just tell us your situation and AI will pick 3 dishes that fit your taste, with the reasons why!",
+  subtitle: "Tell us about your day, and we'll pick 3 dishes that fit just right!",
 
   secMood: "Your mood",
   secBudget: "Budget",
