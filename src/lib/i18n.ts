@@ -103,7 +103,7 @@ const ko: Copy = {
 const en: Copy = {
   langName: "English",
   kicker: "Today's meal",
-  title: "What should I eat?",
+  title: "What’s for Today?",
   subtitle: "Tell us about your day, and we'll pick 3 dishes that fit just right!",
 
   secMood: "Your mood",
