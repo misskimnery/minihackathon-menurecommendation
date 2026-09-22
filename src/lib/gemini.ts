@@ -24,14 +24,18 @@ const MODELS = [
 ].filter((m, i, all) => m && all.indexOf(m) === i);
 
 /* 한 모델이 60초씩 붙잡고 안 놓는 경우가 있다. 그러면 배포 환경에서 함수가 통째로 죽는다.
-   3.6-flash 는 느린 날 10초 가까이 걸려서, 그 정도는 기다려 준다. */
-const CALL_TIMEOUT_MS = 18_000;
+   아래 hedge 로 다른 모델을 겹쳐 띄우니, 한 모델을 오래 기다릴 이유가 없다. */
+const CALL_TIMEOUT_MS = 12_000;
 
-/* 모델을 몇 바퀴까지 다시 돌지, 그리고 전체로 몇 초까지 쓸지.
-   많이 붐비는 시간대에는 아무리 돌려도 안 붙는다. 그때 60초를 다 쓰고 실패하면
-   기다린 사람만 손해라, 예산을 짧게 잡아 실패도 빨리 알려주는 쪽이 낫다. */
-const MAX_PASSES = 3;
-const SWEEP_BUDGET_MS = 26_000;
+/* 첫 모델이 이 시간 안에 답을 안 주면, 기다리지 말고 다음 모델도 같이 띄운다.
+   먼저 도착한 답을 쓴다. 한 모델이 느린 날 30초씩 기다리던 게 이걸로 사라진다.
+   1.5초는 건강한 날 3.6-flash 가 혼자 끝낼 여유는 주면서, 느린 날엔 금방 넘어가는 선. */
+const HEDGE_MS = 1_500;
+
+/* 그래도 전부 실패하면 한 바퀴 더. 많이 붐비는 시간대에는 아무리 돌려도 안 붙으니,
+   예산을 짧게 잡아 실패도 빨리 알려주는 쪽이 낫다. */
+const MAX_PASSES = 2;
+const SWEEP_BUDGET_MS = 22_000;
 
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
@@ -305,6 +309,73 @@ async function callGemini(
   }
 }
 
+/** 한 모델에 한 번 물어본다. 스키마를 거부당하면(400) 스키마 없이 한 번 더. */
+async function tryModel(
+  apiKey: string,
+  prompt: string,
+  drinking: boolean,
+  lang: Lang,
+  model: string,
+): Promise<Response> {
+  let res = await callGemini(apiKey, prompt, true, drinking, lang, model);
+  if (res.status === 400) {
+    res = await callGemini(apiKey, prompt, false, drinking, lang, model);
+  }
+  if (!res.ok) console.warn(`[gemini] ${model} -> ${res.status}`);
+  return res;
+}
+
+/* 모델을 하나씩 기다리면 느린 모델의 시간을 고스란히 까먹는다.
+   먼저 한 개를 띄우고, HEDGE_MS 안에 안 오면 다음 모델을 겹쳐서 띄운다.
+   먼저 도착한 성공 응답을 쓰고, 전부 실패하면 마지막 실패 응답을 돌려준다.
+   (실패해도 응답을 들고 와야 429·503 을 구분해 알맞은 문구를 보여줄 수 있다.) */
+function hedgedRace(
+  models: string[],
+  run: (model: string) => Promise<Response>,
+): Promise<Response | null> {
+  return new Promise((resolve) => {
+    let done = false;
+    let launched = 0;
+    let failed = 0;
+    let lastFail: Response | null = null;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    const finish = (value: Response | null) => {
+      if (done) return;
+      done = true;
+      timers.forEach(clearTimeout);
+      resolve(value);
+    };
+
+    const launchNext = () => {
+      if (done || launched >= models.length) return;
+      const model = models[launched++];
+
+      run(model).then(
+        (res) => {
+          if (done) return;
+          if (res.ok) return finish(res);
+          lastFail = res;
+          failed++;
+          if (failed >= models.length) return finish(lastFail);
+          launchNext(); // 실패했으니 기다리지 말고 다음 모델
+        },
+        () => {
+          if (done) return;
+          failed++;
+          if (failed >= models.length) return finish(lastFail);
+          launchNext();
+        },
+      );
+
+      // 아직 살아 있어도 잠시 뒤 다음 모델을 겹쳐 띄운다
+      timers.push(setTimeout(launchNext, HEDGE_MS));
+    };
+
+    launchNext();
+  });
+}
+
 /** 코드 울타리나 앞뒤 설명이 섞여 와도 JSON 만 건져낸다. */
 export function parseJsonLoose(text: string): unknown {
   const cleaned = text
@@ -412,23 +483,17 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
      그때 503 은 몇 초 만에 되돌아오므로, 한 바퀴 돌고 포기하지 말고
      제한 시간 안에서 몇 바퀴 더 돌아본다. 대개 다음 바퀴에서 붙는다. */
   const started = Date.now();
-  const left = () => SWEEP_BUDGET_MS - (Date.now() - started);
-
   let res: Response | null = null;
-  sweep: for (let pass = 0; pass < MAX_PASSES; pass++) {
-    if (pass > 0) await new Promise((r) => setTimeout(r, 900));
-    for (const model of MODELS) {
-      if (left() <= 0) break sweep;
-      res = await callGemini(apiKey, prompt, true, drinking, lang, model);
-      // 모델이 스키마를 거부하면(400) 스키마 없이 한 번 더.
-      if (res.status === 400) {
-        res = await callGemini(apiKey, prompt, false, drinking, lang, model);
-      }
-      // 503 = 붐빔/무응답, 429 = 그 모델의 무료 할당량 소진.
-      // 둘 다 "이 모델은 지금 못 쓴다"는 뜻이라 기다리지 말고 다음 모델로.
-      if (res.status !== 503 && res.status !== 429) break sweep;
-      console.warn(`[gemini] ${res.status} (pass ${pass + 1}), 다음 모델로:`, model);
+
+  for (let pass = 0; pass < MAX_PASSES; pass++) {
+    if (pass > 0) {
+      if (Date.now() - started > SWEEP_BUDGET_MS) break;
+      await new Promise((r) => setTimeout(r, 700));
     }
+    res = await hedgedRace(MODELS, (model) =>
+      tryModel(apiKey, prompt, drinking, lang, model),
+    );
+    if (res?.ok) break;
   }
 
   if (!res || !res.ok) {
