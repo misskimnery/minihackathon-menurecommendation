@@ -5,22 +5,41 @@ import type { RecommendResult } from "@/lib/menu";
 export function Skeleton() {
   return (
     <div className="flex flex-col gap-4" aria-live="polite" aria-busy="true">
-      <p className="text-center text-muted">Gemini가 메뉴를 고르고 있어요…</p>
+      <p className="hand text-center" style={{ fontSize: "1.3rem", color: "var(--tomato)" }}>
+        Gemini가 메뉴를 고르고 있어요…
+      </p>
       {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          className="animate-pulse rounded-2xl border border-line bg-surface p-5"
-        >
-          <div className="h-6 w-1/3 rounded bg-line" />
-          <div className="mt-4 h-4 w-full rounded bg-line" />
-          <div className="mt-2 h-4 w-4/5 rounded bg-line" />
-          <div className="mt-4 flex gap-2">
-            <div className="h-7 w-24 rounded-full bg-line" />
-            <div className="h-7 w-24 rounded-full bg-line" />
+        <div key={i} className="card" style={{ opacity: 0.75 }}>
+          <div className="flex items-center gap-4">
+            <div
+              className="card__plate"
+              style={{ animation: "pulse-soft 1.4s ease-in-out infinite", animationDelay: `${i * 0.18}s` }}
+            />
+            <div className="flex-1">
+              <div className="h-5 w-2/5 rounded-full" style={{ background: "var(--sesame)" }} />
+              <div className="mt-3 h-3.5 w-full rounded-full" style={{ background: "var(--sesame)" }} />
+              <div className="mt-2 h-3.5 w-3/5 rounded-full" style={{ background: "var(--sesame)" }} />
+            </div>
           </div>
         </div>
       ))}
     </div>
+  );
+}
+
+/** 카드 귀퉁이에 흩뿌리는 부스러기 */
+function Crumbs({ className }: { className: string }) {
+  return (
+    <svg className={`crumbs ${className}`} width="64" height="40" viewBox="0 0 64 40" aria-hidden="true">
+      <g fill="currentColor">
+        <circle cx="8" cy="12" r="2.4" />
+        <circle cx="22" cy="6" r="1.5" />
+        <circle cx="18" cy="24" r="1.9" />
+        <circle cx="36" cy="16" r="1.2" />
+        <circle cx="46" cy="28" r="2.1" />
+        <circle cx="56" cy="10" r="1.4" />
+      </g>
+    </svg>
   );
 }
 
@@ -33,35 +52,59 @@ export default function ResultCards({
 }) {
   return (
     <div className="flex flex-col gap-5">
-      <p className="rise text-center text-lg font-semibold">{result.headline}</p>
+      <div className="rise relative text-center">
+        <p className="display" style={{ fontSize: "1.45rem" }}>
+          {result.headline}
+        </p>
+        <p className="hand mt-1" style={{ fontSize: "1.15rem", color: "var(--ink-3)" }}>
+          오늘의 세 접시
+        </p>
+      </div>
 
       {result.menus.map((m, i) => (
         <article
           key={`${m.name}-${i}`}
-          className="rise rounded-2xl border border-line bg-surface p-5 shadow-sm"
-          style={{ animationDelay: `${i * 70}ms` }}
+          className="rise card"
+          style={{ animationDelay: `${i * 90}ms` }}
         >
-          <header className="flex items-center gap-3">
-            <span aria-hidden="true" className="text-3xl">
+          <Crumbs className="-right-2 -top-1" />
+
+          <header className="flex items-center gap-4">
+            <span className="card__plate" aria-hidden="true">
               {m.emoji}
             </span>
-            <h2 className="flex-1 text-xl font-bold">{m.name}</h2>
-            <span className="shrink-0 rounded-full bg-brand-soft px-3 py-1 text-sm text-brand">
-              {m.priceHint}
-            </span>
+            <h2 className="card__name flex-1">{m.name}</h2>
+            <span className="price">{m.priceHint}</span>
           </header>
 
-          <p className="mt-3 leading-relaxed text-muted">{m.reason}</p>
+          <p className="mt-4 leading-relaxed" style={{ color: "var(--ink-2)" }}>
+            {m.reason}
+          </p>
 
-          <dl className="mt-4 flex flex-wrap gap-2 text-sm">
-            <div className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5">
-              <dt className="text-muted">사이드</dt>
-              <dd className="font-medium">{m.side}</dd>
+          <div
+            className="my-4 h-px w-full"
+            style={{
+              background:
+                "repeating-linear-gradient(90deg, var(--hairline) 0 6px, transparent 6px 12px)",
+            }}
+            aria-hidden="true"
+          />
+
+          <dl className="flex flex-wrap gap-2">
+            <div className="pair">
+              <dt>사이드</dt>
+              <dd>{m.side}</dd>
             </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5">
-              <dt className="text-muted">음료</dt>
-              <dd className="font-medium">{m.drink}</dd>
+            <div className="pair">
+              <dt>음료</dt>
+              <dd>{m.drink}</dd>
             </div>
+            {m.alcohol ? (
+              <div className="pair pair--booze">
+                <dt>한 잔</dt>
+                <dd>{m.alcohol}</dd>
+              </div>
+            ) : null}
           </dl>
         </article>
       ))}
@@ -69,8 +112,12 @@ export default function ResultCards({
       <button
         type="button"
         onClick={onRetry}
-        className="rounded-xl border border-line bg-surface px-6 py-4 font-semibold transition-colors hover:border-brand hover:text-brand"
+        className="chip justify-center"
+        style={{ padding: "1.05rem", fontSize: "1rem", borderRadius: "20px" }}
       >
+        <span className="chip__emoji" aria-hidden="true">
+          ↺
+        </span>
         조건 바꿔서 다시 추천받기
       </button>
     </div>

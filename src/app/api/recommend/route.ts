@@ -1,10 +1,14 @@
 import { RecommendError, recommend } from "@/lib/gemini";
 import {
+  AGES,
+  ALCOHOL_CHOICES,
   AVOIDS,
   AVOID_ETC_MAX,
   BUDGETS,
   COMPANIONS,
-  MOODS,
+  MOOD_MAX,
+  MOOD_MIN,
+  PREFERENCES,
   WEATHERS,
   type Choice,
   type RecommendInput,
@@ -18,22 +22,39 @@ function pick(list: Choice[], value: unknown): string {
   return typeof value === "string" && list.some((c) => c.value === value) ? value : "";
 }
 
+function multi(list: Choice[], value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((v): v is string => list.some((c) => c.value === v))
+    : [];
+}
+
 /** 클라이언트가 보낸 값을 그대로 믿지 않고, 아는 선택지만 통과시킨다. */
 function readInput(body: unknown): RecommendInput | null {
   if (!body || typeof body !== "object") return null;
   const b = body as Record<string, unknown>;
+
+  const moodRaw = typeof b.mood === "number" ? b.mood : Number(b.mood);
+  const mood = Number.isFinite(moodRaw)
+    ? Math.min(MOOD_MAX, Math.max(MOOD_MIN, Math.round(moodRaw)))
+    : 50;
+
+  const age = pick(AGES, b.age);
   const input: RecommendInput = {
-    mood: pick(MOODS, b.mood),
+    mood,
     budget: pick(BUDGETS, b.budget),
     companion: pick(COMPANIONS, b.companion),
     weather: pick(WEATHERS, b.weather),
-    avoid: Array.isArray(b.avoid)
-      ? b.avoid.filter((v): v is string => AVOIDS.some((c) => c.value === v))
-      : [],
+    prefer: multi(PREFERENCES, b.prefer),
+    avoid: multi(AVOIDS, b.avoid),
     avoidEtc:
       typeof b.avoidEtc === "string" ? b.avoidEtc.trim().slice(0, AVOID_ETC_MAX) : "",
+    age,
+    // 미성년자면 클라이언트가 뭘 보내든 술 추천은 없다.
+    alcohol: age === "adult" ? pick(ALCOHOL_CHOICES, b.alcohol) : "no",
   };
-  if (!input.mood || !input.budget || !input.companion || !input.weather) return null;
+
+  if (!input.budget || !input.companion || !input.weather || !input.age) return null;
+  if (input.age === "adult" && !input.alcohol) return null;
   return input;
 }
 
@@ -48,7 +69,7 @@ export async function POST(request: Request) {
   const input = readInput(body);
   if (!input) {
     return Response.json(
-      { error: "기분·예산·함께 먹는 사람·날씨를 모두 골라주세요." },
+      { error: "예산·함께 먹는 사람·날씨·나이를 모두 골라주세요." },
       { status: 400 },
     );
   }
