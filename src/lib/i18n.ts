@@ -55,7 +55,7 @@ const ko: Copy = {
   langName: "한국어",
   kicker: "오늘의 한 끼",
   title: "오늘 뭐 먹지?",
-  subtitle: "지금 상황만 고르면 AI가 취향에 딱 맞는 3가지 음식을 이유와 함께 추천해드려요!",
+  subtitle: "오늘 하루에 대해 알려주시면, 취향에 맞는 3가지 음식을 추천해드릴게요!",
 
   secMood: "지금 기분",
   secBudget: "예산",
