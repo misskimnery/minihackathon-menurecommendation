@@ -127,8 +127,27 @@ export default function Home() {
           >
             오늘의 한 끼
           </p>
-          <h1 className="display" style={{ fontSize: "clamp(2.6rem, 11vw, 3.6rem)" }}>
-            오늘 뭐 먹지?
+          <h1 className="display mb-4" style={{ fontSize: "clamp(2.6rem, 11vw, 3.6rem)" }}>
+            {/* 글자 폭에 딱 맞는 밑줄을 그으려고 제목 글자만 따로 감싼다 */}
+            <span className="relative inline-block">
+              오늘 뭐 먹지?
+              <svg
+                className="absolute left-0 w-full"
+                style={{ bottom: "-0.2em", height: "0.17em" }}
+                viewBox="0 0 240 12"
+                fill="none"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 8.2C42 3.4 84 9.6 124 5.2c32-3.5 74 3.4 113 1.2"
+                  stroke="var(--terracotta)"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  opacity="0.75"
+                />
+              </svg>
+            </span>
             <span
               className="ml-2 inline-block align-middle"
               style={{ fontSize: "0.62em", transform: "rotate(-8deg)" }}
@@ -138,26 +157,8 @@ export default function Home() {
             </span>
           </h1>
 
-          {/* 제목 밑에 거칠게 그은 밑줄 */}
-          <svg
-            className="mt-1 w-56 max-w-full"
-            height="12"
-            viewBox="0 0 240 12"
-            fill="none"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M3 8.2C42 3.4 84 9.6 124 5.2c32-3.5 74 3.4 113 1.2"
-              stroke="var(--terracotta)"
-              strokeWidth="4"
-              strokeLinecap="round"
-              opacity="0.75"
-            />
-          </svg>
-
           <p className="mt-3 text-[1.02rem] leading-relaxed" style={{ color: "var(--ink-2)" }}>
-            지금 상황만 골라주세요. AI가 메뉴 3가지를 이유까지 붙여 골라드려요.
+            지금 상황만 고르면 AI가 취향에 딱 맞는 3가지 음식을 이유와 함께 추천해드려요!
           </p>
         </header>
 
