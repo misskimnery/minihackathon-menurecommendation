@@ -1,4 +1,5 @@
 import { RecommendError, recommend } from "@/lib/gemini";
+import { COPY, isLang } from "@/lib/i18n";
 import {
   AGES,
   ALCOHOL_CHOICES,
@@ -40,6 +41,7 @@ function readInput(body: unknown): RecommendInput | null {
 
   const age = pick(AGES, b.age);
   const input: RecommendInput = {
+    lang: isLang(b.lang) ? b.lang : "ko",
     mood,
     budget: pick(BUDGETS, b.budget),
     companion: pick(COMPANIONS, b.companion),
@@ -58,20 +60,31 @@ function readInput(body: unknown): RecommendInput | null {
   return input;
 }
 
+const MISSING = {
+  ko: "예산·함께 먹는 사람·날씨·나이를 모두 골라주세요.",
+  en: "Please pick your budget, company, weather and age.",
+};
+const UNREADABLE = {
+  ko: "요청을 읽지 못했어요.",
+  en: "Couldn't read the request.",
+};
+
 export async function POST(request: Request) {
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return Response.json({ error: "요청을 읽지 못했어요." }, { status: 400 });
+    return Response.json({ error: UNREADABLE.ko }, { status: 400 });
   }
+
+  const lang =
+    body && typeof body === "object" && isLang((body as Record<string, unknown>).lang)
+      ? ((body as Record<string, unknown>).lang as "ko" | "en")
+      : "ko";
 
   const input = readInput(body);
   if (!input) {
-    return Response.json(
-      { error: "예산·함께 먹는 사람·날씨·나이를 모두 골라주세요." },
-      { status: 400 },
-    );
+    return Response.json({ error: MISSING[lang] }, { status: 400 });
   }
 
   try {
@@ -82,9 +95,6 @@ export async function POST(request: Request) {
       return Response.json({ error: e.message, kind: e.kind }, { status });
     }
     console.error("[recommend]", e);
-    return Response.json(
-      { error: "알 수 없는 오류가 났어요. 다시 시도해주세요." },
-      { status: 500 },
-    );
+    return Response.json({ error: COPY[lang].errGeneric }, { status: 500 });
   }
 }

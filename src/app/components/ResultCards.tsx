@@ -1,12 +1,13 @@
 "use client";
 
-import type { RecommendResult } from "@/lib/menu";
+import { COPY } from "@/lib/i18n";
+import type { Lang, RecommendResult } from "@/lib/menu";
 
-export function Skeleton() {
+export function Skeleton({ lang }: { lang: Lang }) {
   return (
     <div className="flex flex-col gap-4" aria-live="polite" aria-busy="true">
-      <p className="hand text-center" style={{ fontSize: "1.3rem", color: "var(--tomato)" }}>
-        Gemini가 메뉴를 고르고 있어요…
+      <p className="hand text-center" style={{ fontSize: "1.3rem", color: "var(--terracotta)" }}>
+        {COPY[lang].loadingLine}
       </p>
       {[0, 1, 2].map((i) => (
         <div key={i} className="torn card" style={{ opacity: 0.75 }}>
@@ -45,11 +46,15 @@ function Crumbs({ className }: { className: string }) {
 
 export default function ResultCards({
   result,
+  lang,
   onRetry,
 }: {
   result: RecommendResult;
+  lang: Lang;
   onRetry: () => void;
 }) {
+  const t = COPY[lang];
+
   return (
     <div className="flex flex-col gap-5">
       <div className="rise relative text-center">
@@ -57,7 +62,7 @@ export default function ResultCards({
           {result.headline}
         </p>
         <p className="hand mt-1" style={{ fontSize: "1.15rem", color: "var(--ink-3)" }}>
-          오늘의 세 접시
+          {t.resultSub}
         </p>
       </div>
 
@@ -92,16 +97,16 @@ export default function ResultCards({
 
           <dl className="flex flex-wrap gap-2">
             <div className="pair">
-              <dt>사이드</dt>
+              <dt>{t.side}</dt>
               <dd>{m.side}</dd>
             </div>
             <div className="pair">
-              <dt>음료</dt>
+              <dt>{t.drink}</dt>
               <dd>{m.drink}</dd>
             </div>
             {m.alcohol ? (
               <div className="pair pair--booze">
-                <dt>한 잔</dt>
+                <dt>{t.pairing}</dt>
                 <dd>{m.alcohol}</dd>
               </div>
             ) : null}
@@ -118,7 +123,7 @@ export default function ResultCards({
         <span className="chip__emoji" aria-hidden="true">
           ↺
         </span>
-        조건 바꿔서 다시 추천받기
+        {t.retry}
       </button>
     </div>
   );

@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import MenuForm from "./components/MenuForm";
 import ResultCards, { Skeleton } from "./components/ResultCards";
-import { EMPTY_INPUT, type RecommendInput, type RecommendResult } from "@/lib/menu";
+import {
+  COPY,
+  getLangServerSnapshot,
+  getLangSnapshot,
+  setStoredLang,
+  subscribeLang,
+} from "@/lib/i18n";
+import { EMPTY_INPUT, type Lang, type RecommendInput, type RecommendResult } from "@/lib/menu";
 
 type Status = "form" | "loading" | "done";
 
@@ -53,7 +60,7 @@ function Backdrop() {
       {/* 굵은 마커로 그린 포크와 스푼 */}
       <svg
         className="doodle"
-        style={{ top: "7.5rem", left: "1.2rem", transform: "rotate(-12deg)" }}
+        style={{ top: "9.5rem", left: "1.2rem", transform: "rotate(-12deg)" }}
         width="34" height="84" viewBox="0 0 34 84" fill="none"
         stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
       >
@@ -72,7 +79,7 @@ function Backdrop() {
         <path d="M48 20c15.6.4 28.2 12.6 27.6 28.4C75 63.4 62.6 75.6 47.6 75.2 33 74.8 20.4 62 21 47.2 21.6 32.6 33.6 19.6 48 20Z" />
       </svg>
 
-      {/* 손으로 그린 화살표 — 레퍼런스의 그 느낌 */}
+      {/* 손으로 그린 화살표 */}
       <svg
         className="doodle"
         style={{ top: "26%", right: "2.5rem", transform: "rotate(14deg)", opacity: 0.26 }}
@@ -87,31 +94,49 @@ function Backdrop() {
 }
 
 export default function Home() {
+  const lang = useSyncExternalStore(subscribeLang, getLangSnapshot, getLangServerSnapshot);
   const [input, setInput] = useState<RecommendInput>(EMPTY_INPUT);
   const [status, setStatus] = useState<Status>("form");
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function submit() {
+  const t = COPY[lang];
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
+  const submit = useCallback(async (payload: RecommendInput) => {
     setStatus("loading");
     setError(null);
     try {
       const res = await fetch("/api/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error ?? "추천을 받지 못했어요.");
+        setError(data?.error ?? COPY[payload.lang].errGeneric);
         setStatus("form");
         return;
       }
       setResult(data as RecommendResult);
       setStatus("done");
     } catch {
-      setError("서버에 연결하지 못했어요. 인터넷 연결을 확인해주세요.");
+      setError(COPY[payload.lang].errNetwork);
       setStatus("form");
+    }
+  }, []);
+
+  /** 언어를 바꾸면 고른 답은 그대로 두고, 이미 받은 결과는 새 언어로 다시 받아온다. */
+  function changeLang(next: Lang) {
+    if (next === lang) return;
+    setStoredLang(next);
+    setError(null);
+    if (status === "done") {
+      setResult(null);
+      void submit({ ...input, lang: next });
     }
   }
 
@@ -119,18 +144,37 @@ export default function Home() {
     <>
       <Deckle />
       <Backdrop />
-      <main className="relative mx-auto w-full max-w-xl flex-1 px-5 py-12 sm:py-16">
-        <header className="relative mb-11">
+      <main className="relative mx-auto w-full max-w-xl flex-1 px-5 py-8 sm:py-12">
+        <div className="lang" role="group" aria-label="Language">
+          <button
+            type="button"
+            className="lang__btn"
+            aria-pressed={lang === "ko"}
+            onClick={() => changeLang("ko")}
+          >
+            KOR
+          </button>
+          <button
+            type="button"
+            className="lang__btn"
+            aria-pressed={lang === "en"}
+            onClick={() => changeLang("en")}
+          >
+            ENG
+          </button>
+        </div>
+
+        <header className="relative mb-11 mt-7">
           <p
             className="hand mb-1"
             style={{ fontSize: "1.35rem", color: "var(--rust)", transform: "rotate(-2.5deg)" }}
           >
-            오늘의 한 끼
+            {t.kicker}
           </p>
-          <h1 className="display mb-4" style={{ fontSize: "clamp(2.6rem, 11vw, 3.6rem)" }}>
+          <h1 className="display mb-4" style={{ fontSize: "clamp(2.3rem, 10vw, 3.5rem)" }}>
             {/* 글자 폭에 딱 맞는 밑줄을 그으려고 제목 글자만 따로 감싼다 */}
             <span className="relative inline-block">
-              오늘 뭐 먹지?
+              {t.title}
               <svg
                 className="absolute left-0 w-full"
                 style={{ bottom: "-0.2em", height: "0.17em" }}
@@ -158,7 +202,7 @@ export default function Home() {
           </h1>
 
           <p className="mt-3 text-[1.02rem] leading-relaxed" style={{ color: "var(--ink-2)" }}>
-            지금 상황만 고르면 AI가 취향에 딱 맞는 3가지 음식을 이유와 함께 추천해드려요!
+            {t.subtitle}
           </p>
         </header>
 
@@ -177,22 +221,29 @@ export default function Home() {
         ) : null}
 
         {status === "loading" ? (
-          <Skeleton />
+          <Skeleton lang={lang} />
         ) : status === "done" && result ? (
           <ResultCards
             result={result}
+            lang={lang}
             onRetry={() => {
               setStatus("form");
               setResult(null);
             }}
           />
         ) : (
-          <MenuForm input={input} onChange={setInput} onSubmit={submit} loading={false} />
+          <MenuForm
+            input={input}
+            lang={lang}
+            onChange={setInput}
+            onSubmit={() => submit({ ...input, lang })}
+            loading={false}
+          />
         )}
 
         <footer className="mt-14 text-center" style={{ color: "var(--ink-3)" }}>
           <span className="hand" style={{ fontSize: "1.1rem" }}>
-            메뉴와 가격은 AI가 생성한 참고용 추천이에요
+            {t.footer}
           </span>
         </footer>
       </main>

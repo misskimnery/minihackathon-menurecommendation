@@ -1,19 +1,22 @@
 /** Gemini 호출 — 서버 전용. API 키는 이 파일 밖으로 나가지 않는다. */
 
 import {
+  AVOIDS,
   BUDGETS,
   COMPANIONS,
+  PREFERENCES,
   WEATHERS,
   labelOf,
+  labelsOf,
   moodStep,
   wantsAlcohol,
+  type Lang,
   type MenuCard,
   type RecommendInput,
   type RecommendResult,
 } from "./menu";
 
-/* 첫 모델이 붐비면(503) 다음 모델로 넘어간다. 발표 중에 한 번에 되는 게 제일 중요하다.
-   순서는 2026-09-22 실측 기준: lite 계열이 2~3초, 큰 flash 는 10초 이상이거나 503. */
+/* 첫 모델이 붐비면(503) 다음 모델로 넘어간다. 발표 중에 한 번에 되는 게 제일 중요하다. */
 const MODELS = [
   process.env.GEMINI_MODEL || "gemini-3.6-flash",
   "gemini-3.1-flash-lite",
@@ -27,17 +30,42 @@ const CALL_TIMEOUT_MS = 18_000;
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-/** 화면에 그대로 보여줄 한국어 문구를 들고 다니는 에러. */
+export type ErrKind = "no-key" | "auth" | "quota" | "upstream" | "parse";
+
+/** 화면에 그대로 보여줄 문구를 들고 다니는 에러. */
 export class RecommendError extends Error {
   constructor(
     message: string,
-    readonly kind: "no-key" | "auth" | "quota" | "upstream" | "parse",
+    readonly kind: ErrKind,
   ) {
     super(message);
   }
 }
 
-const SYSTEM = [
+const MESSAGES: Record<Lang, Record<ErrKind, string>> = {
+  ko: {
+    "no-key":
+      "GEMINI_API_KEY 가 설정되지 않았어요. .env.local 에 키를 넣고 개발 서버를 다시 시작해주세요.",
+    auth: "API 키가 거부됐어요. AI Studio에서 키를 다시 확인해주세요.",
+    quota: "요청이 너무 많아요. 잠시 뒤에 다시 눌러주세요. (무료 할당량 초과)",
+    upstream: "지금 Gemini 쪽이 붐벼요. 10초쯤 뒤에 다시 눌러주세요.",
+    parse: "AI 응답을 읽지 못했어요. 한 번만 다시 눌러주세요.",
+  },
+  en: {
+    "no-key":
+      "GEMINI_API_KEY is not set. Add the key to .env.local and restart the dev server.",
+    auth: "The API key was rejected. Double-check it in AI Studio.",
+    quota: "Too many requests right now. Give it a moment and try again. (free quota)",
+    upstream: "Gemini is busy at the moment. Try again in about 10 seconds.",
+    parse: "Couldn't read the AI response. Please tap once more.",
+  },
+};
+
+function fail(lang: Lang, kind: ErrKind, extra = ""): never {
+  throw new RecommendError(MESSAGES[lang][kind] + extra, kind);
+}
+
+const SYSTEM_KO = [
   "당신은 한국에서 끼니 메뉴를 골라주는 친구입니다.",
   "사용자가 고른 조건을 보고, 지금 사 먹을 수 있는 메뉴 3가지를 추천합니다.",
   "",
@@ -58,13 +86,43 @@ const SYSTEM = [
   "  예산이 상관없음이면 흔한 시세를 적으세요. 형식 예시: 9,000원대",
   "- side 는 같이 시키면 좋은 음식, drink 는 어울리는 음료입니다. 각각 짧은 한 마디.",
   "  side 와 drink 에도 못 먹는 재료가 들어가면 안 됩니다.",
-  "  (밀가루를 못 먹는데 튀김·만두·빵을 사이드로 붙이면 안 됩니다.)",
   "  side·drink 에는 음식 이름만 쓰세요. 무엇 대신 무엇 같은 설명은 쓰지 마세요.",
   "- reason 에는 사용자가 고른 조건(기분·날씨·함께 먹는 사람)을 직접 언급하세요.",
   "  두 문장 이내, 친구한테 말하듯 편한 말투로.",
   "- emoji 는 그 메뉴를 나타내는 이모지 딱 1개.",
   "- headline 은 왜 이렇게 골랐는지 한 줄 요약. 25자 안쪽.",
   "- 모든 글은 한국어로 씁니다.",
+].join("\n");
+
+const SYSTEM_EN = [
+  "You are a friend who helps people in South Korea decide what to eat.",
+  "Given the conditions the user picked, recommend 3 dishes they can actually buy today.",
+  "",
+  "Rules:",
+  "- Only recommend dishes really sold in South Korea. Never invent dish names.",
+  "  Use the common English name, with the romanized Korean name when it helps",
+  "  (for example: Kimchi stew (kimchi-jjigae)).",
+  "- Make the 3 dishes different in kind (for example: a soup, a noodle, a rice bowl).",
+  "- Foods the user cannot eat must not appear as a main ingredient, and also not in",
+  "  the broth, topping, sauce or side dishes. Check the ingredients one by one before",
+  "  choosing. If anything is even slightly questionable, pick a different dish.",
+  "  Commonly missed: anchovy and clam in kalguksu broth, anchovy stock in kimchi stew,",
+  "  seafood in jjamppong and budae-jjigae, anchovy in tonkatsu sauce, cucumber in",
+  "  bibimbap and gimbap, wheat in noodles and bread, dairy in cream sauces.",
+  "- The mood score runs from 0 (awful) to 100 (amazing). A low score means comforting,",
+  "  soothing food; a high score means food that is fun to celebrate with.",
+  "- If the user listed cuisines they usually like, at least 2 of the 3 dishes must come",
+  "  from those. The must-avoid list always outranks their preferences.",
+  "- priceHint is the price for one person and must fall inside the given budget range.",
+  "  Do not go below the range either. Keep prices in Korean won, like: around 9,000 KRW",
+  "- side is a dish to order alongside; drink is a matching beverage. One short phrase each.",
+  "  Neither may contain anything the user cannot eat.",
+  "  Write only the name of the food or drink, never an explanation like 'X instead of Y'.",
+  "- In reason, directly mention the conditions the user picked (mood, weather, company).",
+  "  Two sentences at most, in a warm casual voice, like talking to a friend.",
+  "- emoji is exactly one emoji representing the dish.",
+  "- headline is a one-line summary of why you chose these. Keep it under 60 characters.",
+  "- Write every field in English.",
 ].join("\n");
 
 const MENU_PROPS = {
@@ -98,25 +156,77 @@ function schemaFor(withAlcohol: boolean) {
   };
 }
 
-/* 라벨만 주면 모델이 1~2만원을 느슨하게 해석해 8천원짜리를 골라온다. 숫자로 못 박는다. */
-const BUDGET_RANGE: Record<string, string> = {
-  under10: " (1인분 10,000원 이하)",
-  "10to20": " (1인분 10,000~20,000원. 10,000원 미만 금지)",
-  "20to30": " (1인분 20,000~30,000원. 20,000원 미만 금지)",
+/* 라벨만 주면 모델이 예산 구간을 느슨하게 해석해 절반값짜리를 골라온다. 숫자로 못 박는다. */
+const BUDGET_RANGE: Record<Lang, Record<string, string>> = {
+  ko: {
+    under10: " (1인분 10,000원 이하)",
+    "10to20": " (1인분 10,000~20,000원. 10,000원 미만 금지)",
+    "20to30": " (1인분 20,000~30,000원. 20,000원 미만 금지)",
+  },
+  en: {
+    under10: " (up to 10,000 KRW per person)",
+    "10to20": " (10,000–20,000 KRW per person. Nothing under 10,000)",
+    "20to30": " (20,000–30,000 KRW per person. Nothing under 20,000)",
+  },
 };
 
 export function buildPrompt(input: RecommendInput): string {
-  const avoid = [...input.avoid, input.avoidEtc.trim()].filter(Boolean);
+  const lang = input.lang;
+  const avoid = [
+    ...labelsOf(AVOIDS, input.avoid, lang),
+    input.avoidEtc.trim(),
+  ].filter(Boolean);
+  const prefer = labelsOf(PREFERENCES, input.prefer, lang);
   const step = moodStep(input.mood);
   const drinking = wantsAlcohol(input);
+  const score = Math.round(input.mood);
+
+  if (lang === "en") {
+    return [
+      "Here's my situation today:",
+      `- Mood: ${step.en} (${score} out of 100)`,
+      `- Budget: ${labelOf(BUDGETS, input.budget, lang)}${BUDGET_RANGE.en[input.budget] ?? ""}`,
+      `- Eating with: ${labelOf(COMPANIONS, input.companion, lang)}`,
+      `- Weather: ${labelOf(WEATHERS, input.weather, lang)}`,
+      `- Cuisines I usually like: ${prefer.length ? prefer.join(", ") : "no particular preference"}`,
+      `- Foods I cannot eat: ${avoid.length ? avoid.join(", ") : "none"}`,
+      "",
+      "Recommend 3 dishes that fit.",
+      ...(avoid.length
+        ? [
+            "",
+            `Hard rule: I cannot eat ${avoid.join(", ")}.`,
+            "Not as a main ingredient, and not in the broth, topping or sauce either.",
+            "Check each dish before you choose it, and drop it if you're unsure.",
+          ]
+        : []),
+      "",
+      ...(input.age === "minor"
+        ? [
+            "I am under the legal drinking age. Never recommend alcohol.",
+            "Do not put soju, beer, makgeolli, highballs, wine or sake in drink.",
+            "Only non-alcoholic drinks. Leave the alcohol field out.",
+          ]
+        : drinking
+          ? [
+              "I am of legal age and I'd like a drink pairing too.",
+              "For each dish, put one short alcohol suggestion in the alcohol field.",
+              "Keep drink non-alcoholic; alcohol goes only in the alcohol field.",
+            ]
+          : [
+              "I am of legal age but I'm not drinking today.",
+              "No alcohol in drink, and leave the alcohol field out.",
+            ]),
+    ].join("\n");
+  }
 
   return [
     "오늘 내 상황이야:",
-    `- 기분: ${step.label} (100점 만점에 ${Math.round(input.mood)}점)`,
-    `- 예산: ${labelOf(BUDGETS, input.budget)}${BUDGET_RANGE[input.budget] ?? ""}`,
-    `- 함께 먹는 사람: ${labelOf(COMPANIONS, input.companion)}`,
-    `- 날씨: ${labelOf(WEATHERS, input.weather)}`,
-    `- 평소 선호하는 메뉴: ${input.prefer.length ? input.prefer.join(", ") : "특별히 없음"}`,
+    `- 기분: ${step.ko} (100점 만점에 ${score}점)`,
+    `- 예산: ${labelOf(BUDGETS, input.budget, lang)}${BUDGET_RANGE.ko[input.budget] ?? ""}`,
+    `- 함께 먹는 사람: ${labelOf(COMPANIONS, input.companion, lang)}`,
+    `- 날씨: ${labelOf(WEATHERS, input.weather, lang)}`,
+    `- 평소 선호하는 메뉴: ${prefer.length ? prefer.join(", ") : "특별히 없음"}`,
     `- 못 먹는 음식: ${avoid.length ? avoid.join(", ") : "없음"}`,
     "",
     "이 조건에 맞는 메뉴 3가지를 추천해줘.",
@@ -151,13 +261,18 @@ export function buildPrompt(input: RecommendInput): string {
 
 type Body = Record<string, unknown>;
 
-function requestBody(prompt: string, withSchema: boolean, withAlcohol: boolean): Body {
+function requestBody(
+  prompt: string,
+  withSchema: boolean,
+  withAlcohol: boolean,
+  lang: Lang,
+): Body {
   const generationConfig: Body = { temperature: 1, responseMimeType: "application/json" };
   // 스키마를 안 주면 모델이 필드 이름을 제멋대로 짓는다(menu_name, recommendations...).
   // 그래서 스키마가 기본이고, 거부당했을 때만 빼고 다시 부른다.
   if (withSchema) generationConfig.responseSchema = schemaFor(withAlcohol);
   return {
-    systemInstruction: { parts: [{ text: SYSTEM }] },
+    systemInstruction: { parts: [{ text: lang === "en" ? SYSTEM_EN : SYSTEM_KO }] },
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig,
   };
@@ -168,13 +283,14 @@ async function callGemini(
   prompt: string,
   withSchema: boolean,
   withAlcohol: boolean,
+  lang: Lang,
   model: string,
 ) {
   try {
     return await fetch(ENDPOINT(model), {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify(requestBody(prompt, withSchema, withAlcohol)),
+      body: JSON.stringify(requestBody(prompt, withSchema, withAlcohol, lang)),
       signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
     });
   } catch {
@@ -209,34 +325,49 @@ function str(v: unknown, fallback = ""): string {
 }
 
 /* 미성년자에게 술이 나가는 건 프롬프트만 믿고 넘길 일이 아니다.
-   모델이 어기더라도 서버에서 한 번 더 막는다. */
+   모델이 어기더라도 서버에서 한 번 더 막는다. 영어 답변도 같이 본다. */
 const ALCOHOL_WORDS = [
   "소주", "맥주", "생맥", "소맥", "막걸리", "하이볼", "와인", "사케", "청하", "정종",
   "위스키", "보드카", "데킬라", "럼주", "브랜디", "칵테일", "모히토", "진토닉", "샴페인",
   "고량주", "이슬", "카스", "테라", "켈리", "복분자주", "매실주", "과실주", "리큐르", "술",
 ];
-const SAFE_DRINK = "시원한 탄산수";
+const ALCOHOL_WORDS_EN = [
+  "soju", "beer", "lager", "ale", "makgeolli", "highball", "wine", "sake", "whisky",
+  "whiskey", "vodka", "tequila", "rum", "brandy", "cocktail", "mojito", "gin", "champagne",
+  "cider", "liqueur", "alcohol", "alcoholic", "cheongha", "baijiu", "bokbunja",
+];
+const SAFE_DRINK: Record<Lang, string> = {
+  ko: "시원한 탄산수",
+  en: "Sparkling water",
+};
 
-function hasAlcohol(text: string): boolean {
-  return ALCOHOL_WORDS.some((w) => text.includes(w));
+function hasAlcohol(text: string, lang: Lang): boolean {
+  if (ALCOHOL_WORDS.some((w) => text.includes(w))) return true;
+  const lower = text.toLowerCase();
+  // 영어는 단어 단위로 봐야 한다. "ginger" 안의 "gin" 에 걸리면 안 된다.
+  const words = lower.split(/[^a-z]+/).filter(Boolean);
+  if (lang === "en" || /[a-z]/.test(lower)) {
+    return ALCOHOL_WORDS_EN.some((w) => words.includes(w));
+  }
+  return false;
 }
 
 /** 술을 원하지 않거나 미성년자면, 모델 답에서 술기운을 걷어낸다. */
-export function stripAlcohol(result: RecommendResult): RecommendResult {
+export function stripAlcohol(result: RecommendResult, lang: Lang): RecommendResult {
   return {
     ...result,
     menus: result.menus.map((m) => {
       const next: MenuCard = { ...m };
       delete next.alcohol;
-      if (hasAlcohol(next.drink)) next.drink = SAFE_DRINK;
-      if (hasAlcohol(next.side)) next.side = "—";
+      if (hasAlcohol(next.drink, lang)) next.drink = SAFE_DRINK[lang];
+      if (hasAlcohol(next.side, lang)) next.side = "—";
       return next;
     }),
   };
 }
 
 /** 모델이 형식을 조금 어겨도 화면이 깨지지 않게 다듬는다. */
-export function shapeResult(raw: unknown): RecommendResult | null {
+export function shapeResult(raw: unknown, lang: Lang): RecommendResult | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, unknown>;
   const list = Array.isArray(obj.menus) ? obj.menus : [];
@@ -258,26 +389,26 @@ export function shapeResult(raw: unknown): RecommendResult | null {
     .filter((m) => m.name)
     .slice(0, 3);
   if (!menus.length) return null;
-  return { headline: str(obj.headline, "오늘은 이런 메뉴 어때요?"), menus };
+  const fallbackHead =
+    lang === "en" ? "How about these today?" : "오늘은 이런 메뉴 어때요?";
+  return { headline: str(obj.headline, fallbackHead), menus };
 }
 
 export async function recommend(input: RecommendInput): Promise<RecommendResult> {
+  const lang = input.lang;
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new RecommendError(
-      "GEMINI_API_KEY 가 설정되지 않았어요. .env.local 에 키를 넣고 개발 서버를 다시 시작해주세요.",
-      "no-key",
-    );
-  }
+  if (!apiKey) fail(lang, "no-key");
 
   const prompt = buildPrompt(input);
   const drinking = wantsAlcohol(input);
 
   let res: Response | null = null;
   for (const model of MODELS) {
-    res = await callGemini(apiKey, prompt, true, drinking, model);
+    res = await callGemini(apiKey, prompt, true, drinking, lang, model);
     // 모델이 스키마를 거부하면(400) 스키마 없이 한 번 더.
-    if (res.status === 400) res = await callGemini(apiKey, prompt, false, drinking, model);
+    if (res.status === 400) {
+      res = await callGemini(apiKey, prompt, false, drinking, lang, model);
+    }
     // 503 = 붐빔/무응답, 429 = 그 모델의 무료 할당량 소진.
     // 둘 다 "이 모델은 지금 못 쓴다"는 뜻이라 기다리지 말고 다음 모델로 넘긴다.
     // 3.6-flash 는 품질이 좋은 대신 할당량이 빡빡해서, 이 폴백이 없으면 시연 중에 멈춘다.
@@ -288,29 +419,11 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
   if (!res || !res.ok) {
     const status = res?.status ?? 0;
     const detail = res ? await res.text().catch(() => "") : "";
-    if (status === 401 || status === 403) {
-      throw new RecommendError(
-        "API 키가 거부됐어요. AI Studio에서 키를 다시 확인해주세요.",
-        "auth",
-      );
-    }
-    if (status === 503) {
-      throw new RecommendError(
-        "지금 Gemini 쪽이 붐벼요. 10초쯤 뒤에 다시 눌러주세요.",
-        "upstream",
-      );
-    }
-    if (status === 429) {
-      throw new RecommendError(
-        "요청이 너무 많아요. 잠시 뒤에 다시 눌러주세요. (무료 할당량 초과)",
-        "quota",
-      );
-    }
+    if (status === 401 || status === 403) fail(lang, "auth");
+    if (status === 503) fail(lang, "upstream");
+    if (status === 429) fail(lang, "quota");
     console.error("[gemini]", status, detail.slice(0, 500));
-    throw new RecommendError(
-      `Gemini 호출에 실패했어요. (${status}) 잠시 뒤 다시 시도해주세요.`,
-      "upstream",
-    );
+    fail(lang, "upstream", ` (${status})`);
   }
 
   const data = (await res.json()) as {
@@ -320,13 +433,10 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
     .map((p) => p?.text ?? "")
     .join("");
 
-  const shaped = shapeResult(parseJsonLoose(text));
+  const shaped = shapeResult(parseJsonLoose(text), lang);
   if (!shaped) {
     console.error("[gemini] 파싱 실패:", text.slice(0, 500));
-    throw new RecommendError(
-      "AI 응답을 읽지 못했어요. 한 번만 다시 눌러주세요.",
-      "parse",
-    );
+    fail(lang, "parse");
   }
-  return drinking ? shaped : stripAlcohol(shaped);
+  return drinking ? shaped : stripAlcohol(shaped, lang);
 }

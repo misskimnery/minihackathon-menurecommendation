@@ -1,21 +1,28 @@
 /** 입력 선택지와 결과 타입 — 서버(프롬프트 조립)와 클라이언트(폼) 양쪽에서 쓴다. */
 
-export type Choice = { value: string; label: string; emoji: string };
+export type Lang = "ko" | "en";
+
+/** value 는 언어와 무관한 식별자. 화면과 프롬프트에는 ko/en 을 골라 쓴다. */
+export type Choice = { value: string; ko: string; en: string; emoji: string };
+
+export function label(c: Choice, lang: Lang): string {
+  return lang === "en" ? c.en : c.ko;
+}
 
 /* ── 기분: 0~100 슬라이더. 결과에 넘길 때는 10단위 10칸으로 잘라 쓴다. ── */
-export type MoodStep = { label: string; emoji: string };
+export type MoodStep = { ko: string; en: string; emoji: string };
 
 export const MOOD_STEPS: MoodStep[] = [
-  { label: "기분 최악", emoji: "😭" },
-  { label: "많이 가라앉음", emoji: "😞" },
-  { label: "울적함", emoji: "🥲" },
-  { label: "살짝 지침", emoji: "😮‍💨" },
-  { label: "그저 그럼", emoji: "😐" },
-  { label: "기분 중간", emoji: "🙂" },
-  { label: "조금 좋음", emoji: "😌" },
-  { label: "기분 좋음", emoji: "😊" },
-  { label: "신남", emoji: "😆" },
-  { label: "기분 최고", emoji: "🤩" },
+  { ko: "기분 최악", en: "Awful", emoji: "😭" },
+  { ko: "많이 가라앉음", en: "Really low", emoji: "😞" },
+  { ko: "울적함", en: "Down", emoji: "🥲" },
+  { ko: "살짝 지침", en: "A bit drained", emoji: "😮‍💨" },
+  { ko: "그저 그럼", en: "Meh", emoji: "😐" },
+  { ko: "기분 중간", en: "Okay", emoji: "🙂" },
+  { ko: "조금 좋음", en: "Pretty good", emoji: "😌" },
+  { ko: "기분 좋음", en: "Good", emoji: "😊" },
+  { ko: "신남", en: "Great", emoji: "😆" },
+  { ko: "기분 최고", en: "Amazing", emoji: "🤩" },
 ];
 
 export const MOOD_MIN = 0;
@@ -31,68 +38,69 @@ export function moodStep(value: number): MoodStep {
 }
 
 export const BUDGETS: Choice[] = [
-  { value: "under10", label: "1만원 이하", emoji: "🪙" },
-  { value: "10to20", label: "1~2만원", emoji: "💵" },
-  { value: "20to30", label: "2~3만원", emoji: "💳" },
-  { value: "any", label: "상관없음", emoji: "✨" },
+  { value: "under10", ko: "1만원 이하", en: "Under ₩10,000", emoji: "🪙" },
+  { value: "10to20", ko: "1~2만원", en: "₩10,000–20,000", emoji: "💵" },
+  { value: "20to30", ko: "2~3만원", en: "₩20,000–30,000", emoji: "💳" },
+  { value: "any", ko: "상관없음", en: "No limit", emoji: "✨" },
 ];
 
 export const COMPANIONS: Choice[] = [
-  { value: "alone", label: "혼밥", emoji: "🧍" },
-  { value: "friend", label: "친구", emoji: "🧑‍🤝‍🧑" },
-  { value: "lover", label: "연인", emoji: "💘" },
-  { value: "family", label: "가족", emoji: "👨‍👩‍👧" },
-  { value: "team", label: "회식", emoji: "🍻" },
+  { value: "alone", ko: "혼밥", en: "By myself", emoji: "🧍" },
+  { value: "friend", ko: "친구", en: "Friends", emoji: "🧑‍🤝‍🧑" },
+  { value: "lover", ko: "연인", en: "Partner", emoji: "💘" },
+  { value: "family", ko: "가족", en: "Family", emoji: "👨‍👩‍👧" },
+  { value: "team", ko: "회식", en: "Work dinner", emoji: "🍻" },
 ];
 
 export const WEATHERS: Choice[] = [
-  { value: "hot", label: "덥고 습함", emoji: "🥵" },
-  { value: "cold", label: "춥고 쌀쌀", emoji: "🧊" },
-  { value: "rain", label: "비 옴", emoji: "🌧️" },
-  { value: "clear", label: "맑음", emoji: "☀️" },
-  { value: "cloudy", label: "흐림", emoji: "☁️" },
+  { value: "hot", ko: "덥고 습함", en: "Hot & humid", emoji: "🥵" },
+  { value: "cold", ko: "춥고 쌀쌀", en: "Cold & chilly", emoji: "🧊" },
+  { value: "rain", ko: "비 옴", en: "Rainy", emoji: "🌧️" },
+  { value: "clear", ko: "맑음", en: "Clear", emoji: "☀️" },
+  { value: "cloudy", ko: "흐림", en: "Cloudy", emoji: "☁️" },
 ];
 
 /** 평소 선호하는 메뉴 — 여러 개 고를 수 있고, 안 골라도 된다. */
 export const PREFERENCES: Choice[] = [
-  { value: "한식", label: "한식", emoji: "🍚" },
-  { value: "중식", label: "중식", emoji: "🥟" },
-  { value: "일식", label: "일식", emoji: "🍣" },
-  { value: "양식", label: "양식", emoji: "🍝" },
-  { value: "분식", label: "분식", emoji: "🌭" },
-  { value: "아시안", label: "아시안", emoji: "🍛" },
-  { value: "고기·구이", label: "고기·구이", emoji: "🥩" },
-  { value: "면·국수", label: "면·국수", emoji: "🍜" },
-  { value: "국물·탕", label: "국물·탕", emoji: "🍲" },
-  { value: "덮밥·비빔", label: "덮밥·비빔", emoji: "🍱" },
-  { value: "튀김·치킨", label: "튀김·치킨", emoji: "🍗" },
-  { value: "가볍게", label: "가볍게", emoji: "🥗" },
+  { value: "korean", ko: "한식", en: "Korean", emoji: "🍚" },
+  { value: "chinese", ko: "중식", en: "Chinese", emoji: "🥟" },
+  { value: "japanese", ko: "일식", en: "Japanese", emoji: "🍣" },
+  { value: "western", ko: "양식", en: "Western", emoji: "🍝" },
+  { value: "snack", ko: "분식", en: "Korean street food", emoji: "🌭" },
+  { value: "asian", ko: "아시안", en: "Other Asian", emoji: "🍛" },
+  { value: "grill", ko: "고기·구이", en: "Grilled meat", emoji: "🥩" },
+  { value: "noodle", ko: "면·국수", en: "Noodles", emoji: "🍜" },
+  { value: "soup", ko: "국물·탕", en: "Soup & stew", emoji: "🍲" },
+  { value: "ricebowl", ko: "덮밥·비빔", en: "Rice bowls", emoji: "🍱" },
+  { value: "fried", ko: "튀김·치킨", en: "Fried & chicken", emoji: "🍗" },
+  { value: "light", ko: "가볍게", en: "Something light", emoji: "🥗" },
 ];
 
 /** 못 먹는 음식 — 여러 개 고를 수 있고, 안 골라도 된다. */
 export const AVOIDS: Choice[] = [
-  { value: "해산물", label: "해산물", emoji: "🦐" },
-  { value: "매운 음식", label: "매운 음식", emoji: "🌶️" },
-  { value: "유제품", label: "유제품", emoji: "🥛" },
-  { value: "돼지고기", label: "돼지고기", emoji: "🐷" },
-  { value: "소고기", label: "소고기", emoji: "🐮" },
-  { value: "견과류", label: "견과류", emoji: "🥜" },
-  { value: "오이", label: "오이", emoji: "🥒" },
-  { value: "밀가루", label: "밀가루", emoji: "🌾" },
+  { value: "seafood", ko: "해산물", en: "Seafood", emoji: "🦐" },
+  { value: "spicy", ko: "매운 음식", en: "Spicy food", emoji: "🌶️" },
+  { value: "dairy", ko: "유제품", en: "Dairy", emoji: "🥛" },
+  { value: "pork", ko: "돼지고기", en: "Pork", emoji: "🐷" },
+  { value: "beef", ko: "소고기", en: "Beef", emoji: "🐮" },
+  { value: "nuts", ko: "견과류", en: "Nuts", emoji: "🥜" },
+  { value: "cucumber", ko: "오이", en: "Cucumber", emoji: "🥒" },
+  { value: "wheat", ko: "밀가루", en: "Wheat / gluten", emoji: "🌾" },
 ];
 
 /** 미성년자에게는 어떤 경우에도 술을 추천하지 않는다. */
 export const AGES: Choice[] = [
-  { value: "adult", label: "성인이에요", emoji: "🪪" },
-  { value: "minor", label: "미성년자예요", emoji: "🧒" },
+  { value: "adult", ko: "성인이에요", en: "I'm of legal age", emoji: "🪪" },
+  { value: "minor", ko: "미성년자예요", en: "I'm under 19", emoji: "🧒" },
 ];
 
 export const ALCOHOL_CHOICES: Choice[] = [
-  { value: "yes", label: "술도 추천받을래요", emoji: "🍶" },
-  { value: "no", label: "술은 빼주세요", emoji: "🚫" },
+  { value: "yes", ko: "술도 추천받을래요", en: "Yes, pair a drink", emoji: "🍶" },
+  { value: "no", ko: "술은 빼주세요", en: "No alcohol, thanks", emoji: "🚫" },
 ];
 
 export type RecommendInput = {
+  lang: Lang;
   mood: number;
   budget: string;
   companion: string;
@@ -122,8 +130,16 @@ export type RecommendResult = {
 
 export const AVOID_ETC_MAX = 40;
 
-export function labelOf(list: Choice[], value: string): string {
-  return list.find((c) => c.value === value)?.label ?? "";
+export function labelsOf(list: Choice[], values: string[], lang: Lang): string[] {
+  return values
+    .map((v) => list.find((c) => c.value === v))
+    .filter((c): c is Choice => Boolean(c))
+    .map((c) => label(c, lang));
+}
+
+export function labelOf(list: Choice[], value: string, lang: Lang): string {
+  const found = list.find((c) => c.value === value);
+  return found ? label(found, lang) : "";
 }
 
 /** 술 추천을 곁들일지. 미성년자면 무조건 아니다. */
@@ -140,6 +156,7 @@ export function isComplete(input: RecommendInput): boolean {
 }
 
 export const EMPTY_INPUT: RecommendInput = {
+  lang: "ko",
   mood: 50,
   budget: "",
   companion: "",
